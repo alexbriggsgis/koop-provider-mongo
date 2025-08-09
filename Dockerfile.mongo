@@ -1,0 +1,35 @@
+FROM mongo:latest
+
+# Install Node.js
+RUN apt-get update && apt-get install -y \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Initialize npm project and install lodash
+RUN npm init -y && \
+    npm install lodash && \
+    npm install mongodb && \
+    npm install config
+
+# Copy the mongo-data folder with explicit destination
+COPY ./docker-demo/mongo-setup/ /usr/src/app/mongo-setup/
+
+# Debug: List contents of source and destination
+RUN echo "Listing contents of mongo-demo directory:" && \
+    ls -la /usr/src/app/mongo-setup
+
+# Start MongoDB with network access enabled
+CMD mongod --fork --logpath /var/log/mongodb.log \
+    --bind_ip 0.0.0.0 \
+    --port 27017 \
+    --noauth && \
+    node mongo-setup/loader.js && \
+    tail -f /var/log/mongodb.log
+
+EXPOSE 27017
+

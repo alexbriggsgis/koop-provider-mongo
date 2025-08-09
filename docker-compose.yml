@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  mongodb:
+    build:
+      context: .
+      dockerfile: Dockerfile.mongo
+    ports:
+      - '27017:27017'
+    networks:
+      - koop-network
+    container_name: mongodb
+  koop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    networks:
+      - koop-network
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017/koop
+    container_name: koop-app
+
+networks:
+  koop-network:
+    driver: bridge
